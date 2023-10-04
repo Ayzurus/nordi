@@ -1,0 +1,6 @@
+[submodule "lib/str"]
+	path = lib/str
+	url = https://github.com/maxim2266/str.git
+[submodule "test/munit"]
+	path = test/munit
+	url = https://github.com/nemequ/munit.git

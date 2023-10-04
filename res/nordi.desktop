@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=0.1.0
+Type=Application
+Name=Nordi
+Icon=nordi
+Comment=Unofficial GTK interface for NordVPN
+StartupNotify=true
+Categories=GTK;Internet;
+Exec=/usr/local/bin/nordi

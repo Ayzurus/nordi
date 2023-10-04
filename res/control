@@ -1,0 +1,5 @@
+Package: nordi
+Version: 0.1.0
+Maintainer: Ayzurus
+Architecture: all
+Description: Unofficial GTK interface for NordVPN

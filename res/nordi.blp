@@ -1,0 +1,281 @@
+using Gtk 4.0;
+
+template nordi_gui_t : Gtk.ApplicationWindow {
+    title: "Nordi";
+    icon-name: "nordi";
+    resizable: false;
+    
+    Gtk.Box {
+        orientation: vertical;
+        valign: fill;
+        spacing: 0;
+
+        Gtk.Box {
+            orientation: horizontal;
+            halign: start;
+            vexpand: true;
+            spacing: 10;
+
+            Gtk.StackSidebar {
+                stack: tabs_stack;
+            }
+
+            Gtk.Stack tabs_stack {
+                transition-type: slide_up_down;
+
+                Gtk.StackPage {
+                    name: "tab_vpn";
+                    title: "VPN";
+                    child:
+                    Gtk.Grid {
+                        halign: center;
+                        row-spacing: 25;
+                        column-spacing: 10;
+                        margin-top: 10;
+                        margin-bottom: 10;
+                        margin-start: 10;
+                        margin-end: 10;
+
+                        Gtk.Label {
+                            halign: start;
+                            label: "Server";
+                            tooltip-text: "The server location or group, that you intend to connect to";
+                        }
+                        
+                        Gtk.ComboBoxText country_combo {
+                            halign: start;
+                            items [
+                                "Automatic"
+                            ]
+                            active: 0;
+                        }
+
+                        Gtk.Label {
+                            halign: start;
+                            label: "IP";
+                            tooltip-text: "The IP provided by the VPN server";
+                            layout {
+                              row: 2;
+                              column: 0;
+                            }
+                        }
+
+                        Gtk.Label ip_label {
+                            halign: start;
+                            label: "";
+                            layout {
+                              row: 2;
+                              column: 1;
+                            }
+                        }
+
+                        Gtk.Spinner spinner1 {
+                            spinning: false;
+                            layout {
+                                column: 0;
+                                row: 4;
+                            }
+                        }
+
+                        Gtk.Label {
+                            halign: start;
+                            label: "Host";
+                            tooltip-text: "The server you are currently connected to";
+                            layout {
+                                column: 0;
+                                row: 1;
+                            }
+                        }
+
+                        Gtk.Label host_label {
+                            halign: start;
+                            label: "";
+                            layout {
+                                column: 1;
+                                row: 1;
+                            }
+                        }
+
+                        Gtk.Button connect_button {
+                            label: "Connect";
+                            layout {
+                                column: 0;
+                                row: 3;
+                            }
+                        }
+
+                        Gtk.Button disconnect_button {
+                            visible: false;
+                            label: "Disconnect";
+                            layout {
+                                column: 0;
+                                row: 3;
+                            }
+                        }
+
+                        Gtk.Button {
+                            visible: false;
+                            label: "Pause";
+                            layout {
+                                column: 1;
+                                row: 3;
+                            }
+                        }
+                    };
+                }
+
+                // Gtk.StackPage {
+                //     visible: false;
+                //     name: "tab_sec";
+                //     title: "Security";
+                //     icon-name: "shield-safe-symbolic";
+                //     child: 
+                //     Gtk.Label {
+                //         label: "PLACEHOLDER";
+                //     };
+                // }
+
+                // Gtk.StackPage {
+                //     name: "tab_mesh";
+                //     title: "Meshnet";
+                //     child: 
+                //     Gtk.Label {
+                //         label: "PLACEHOLDER";
+                //     };
+                // }
+
+                // Gtk.StackPage {
+                //     name: "tab_set";
+                //     title: "Settings";
+                //     child: 
+                //     Gtk.Label {
+                //         label: "PLACEHOLDER";
+                //     };
+                // }
+
+                Gtk.StackPage {
+                    name: "tab_acc";
+                    title: "Account";
+                    child: 
+                    Gtk.Grid {
+                        halign: start;
+                        row-spacing: 25;
+                        column-spacing: 10;
+                        margin-top: 10;
+                        margin-bottom: 10;
+                        margin-start: 10;
+                        margin-end: 10;
+
+                        Gtk.Label version_label {
+                            halign: start;
+                            label: "NordVPN not found";
+                            tooltip-text: "The version of the NordVPN binary";
+                            layout {
+                              column: 1;
+                            }
+                        }
+
+                        Gtk.Label {
+                            halign: start;
+                            label: "User";
+                            tooltip-text: "The account email of the user";
+                            layout {
+                              row: 1;
+                              column: 0;
+                            }
+                        }
+
+                        Gtk.Label email_label {
+                            halign: start;
+                            label: "";
+                            layout {
+                              row: 1;
+                              column: 1;
+                            }
+                        }
+
+                        Gtk.Label {
+                            halign: start;
+                            label: "Expiry";
+                            tooltip-text: "The expiry of the service on this account";
+                            layout {
+                              row: 2;
+                              column: 0;
+                            }
+                        }
+
+                        Gtk.Label expire_label {
+                            halign: start;
+                            label: "";
+                            layout {
+                              row: 2;
+                              column: 1;
+                            }
+                        }
+
+                        Gtk.Button login_button {
+                            label: "Log in";
+                            layout {
+                                row: 3;
+                                column: 0;
+                            }
+                        }
+
+                        Gtk.Button logout_button {
+                            visible: false;
+                            label: "Log out";
+                            layout {
+                                row: 3;
+                                column: 0;
+                            }
+                        }
+                    };
+                }
+
+                Gtk.StackPage {
+                    name: "tab_help";
+                    title: "About";
+                    child: 
+                    Gtk.Box {
+                        orientation: vertical;
+                        valign: center;
+                        
+                        Gtk.Box {
+                            orientation: vertical;
+                            valign: center;
+                            spacing: 25;
+
+                            Gtk.Label {
+                              label: bind nordi_gui_t.title;
+                              styles ["title-1"]
+                            }
+                            
+                            Gtk.Label {
+                              label: "Version 0.1.0";
+                            }
+                            
+                            Gtk.Label {
+                              label: "Supports NordVPN 3.16.6+";
+                            }
+                            
+                            Gtk.LinkButton {
+                                label: "page on github";
+                                uri: "https://github.com";
+                            }
+                        }
+                    };
+                }
+            }
+        }
+
+        Gtk.Separator {
+            orientation: horizontal;
+        }
+
+        Gtk.Statusbar status_bar {
+            vexpand: false;
+        }
+    }
+
+
+}
