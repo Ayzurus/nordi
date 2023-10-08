@@ -18,3 +18,4 @@
 
 extern TESTS(server_tests);
 extern TESTS(api_tests);
+extern TESTS(routine_tests);
