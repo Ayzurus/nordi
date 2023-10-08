@@ -39,7 +39,7 @@ assert_empty_host() {
     assert_false(host->is_online);
     assert_memory_equal(sizeof(str), &(host->ip), &empty_str);
     assert_memory_equal(sizeof(str), &(host->proto), &empty_str);
-    assert_memory_equal(sizeof(str), &(host->name), &empty_str);
+    assert_memory_equal(sizeof(str), &(host->hostname), &empty_str);
 }
 
 static void
@@ -47,8 +47,9 @@ assert_filled_host() {
     nordvpn_host_ptr host = nordvpn_get_host();
     assert_true(host->is_online);
     assert_int(host->country, ==, MOCKED_COUNTRY);
-    assert_string_equal(str_ptr(host->name), MOCKED_HOSTNAME);
+    assert_string_equal(str_ptr(host->hostname), MOCKED_HOSTNAME);
     assert_string_equal(str_ptr(host->ip), MOCKED_IP);
+    assert_string_equal(str_ptr(host->last_server), MOCKED_LAST_SERVER);
 }
 
 static void
@@ -66,8 +67,9 @@ fill_host() {
     host->is_online = true;
     host->country = MOCKED_COUNTRY;
     host->ip = str_lit(MOCKED_IP);
-    host->name = str_lit(MOCKED_HOSTNAME);
+    host->hostname = str_lit(MOCKED_HOSTNAME);
     host->proto = str_lit(MOCKED_PROTO);
+    host->last_server = str_lit(MOCKED_LAST_SERVER);
 }
 
 TEST(test_nordvpn_close) {
@@ -222,6 +224,106 @@ TEST(test_nordvpn_logout_fail_execute) {
     assert_filled_host();
 }
 
+TEST(test_nordvpn_connect_success_quick) {
+    add_mock_result(OK, "", NARGS("c"));
+    add_mock_result(OK, MOCKED_CONSTATUS, NARGS("status"));
+    fill_session();
+    assert_int(nordvpn_connect(), ==, OK);                // call
+    assert_int(nordvpn_server_connect(str_null), ==, OK); // call
+    assert_filled_session();
+    assert_filled_host();
+}
+
+TEST(test_nordvpn_connect_success_country) {
+    add_mock_result(OK, "", NARGS("c", "Portugal"));
+    add_mock_result(OK, MOCKED_CONSTATUS, NARGS("status"));
+    fill_session();
+    assert_int(nordvpn_server_connect(NORDVPN_COUNTRY_STR[PORTUGAL]), ==, OK); // call
+    assert_filled_host();
+}
+
+TEST(test_nordvpn_connect_success_group) {
+    add_mock_result(OK, "", NARGS("c", "Double_VPN"));
+    add_mock_result(OK, MOCKED_CONSTATUS, NARGS("status"));
+    fill_session();
+    assert_int(nordvpn_server_connect(NORDVPN_GROUP_STR[DOUBLE_VPN]), ==, OK); // call
+    assert_filled_host();
+}
+
+TEST(test_nordvpn_connect_fail_execute) {
+    add_mock_result(FAILED_EXECUTE, "", NARGS("c"));
+    fill_session();
+    assert_int(nordvpn_server_connect(str_null), ==, FAILED_EXECUTE); // call
+    assert_empty_host();
+}
+
+TEST(test_nordvpn_connect_fail_update) {
+    add_mock_result(OK, "", NARGS("c"));
+    add_mock_result(FAILED_EXECUTE, "", NARGS("status"));
+    fill_session();
+    assert_int(nordvpn_server_connect(str_null), ==, FAILED_EXECUTE); // call
+    assert_empty_host();
+}
+
+TEST(test_nordvpn_disconnect_success_quick) {
+    add_mock_result(OK, "", NARGS("d"));
+    add_mock_result(OK, MOCKED_DISSTATUS, NARGS("status"));
+    fill_session();
+    fill_host();
+    nordvpn_host_ptr host = nordvpn_get_host();
+    assert_int(nordvpn_disconnect(), ==, OK); // call
+    assert_empty_host();
+    assert_string_equal(str_ptr(host->last_server), MOCKED_LAST_SERVER);
+}
+
+TEST(test_nordvpn_disconnect_fail_execute) {
+    add_mock_result(FAILED_EXECUTE, "", NARGS("d"));
+    fill_session();
+    fill_host();
+    nordvpn_host_ptr host = nordvpn_get_host();
+    assert_int(nordvpn_disconnect(), ==, FAILED_EXECUTE); // call
+    assert_filled_host();
+}
+
+TEST(test_nordvpn_disconnect_fail_update) {
+    add_mock_result(OK, "", NARGS("d"));
+    add_mock_result(FAILED_EXECUTE, "", NARGS("status"));
+    fill_session();
+    fill_host();
+    nordvpn_host_ptr host = nordvpn_get_host();
+    assert_int(nordvpn_disconnect(), ==, FAILED_EXECUTE); // call
+    assert_filled_host();
+}
+
+TEST(test_nordvpn_reconnect_success_quick) {
+    add_mock_result(OK, "", NARGS("c", MOCKED_LAST_SERVER));
+    add_mock_result(OK, MOCKED_CONSTATUS, NARGS("status"));
+    fill_session();
+    nordvpn_host_ptr host = nordvpn_get_host();
+    host->last_server = str_lit(MOCKED_LAST_SERVER);
+    assert_int(nordvpn_reconnect(), ==, OK); // call
+    assert_filled_host();
+}
+
+TEST(test_nordvpn_reconnect_fail_execute) {
+    add_mock_result(FAILED_EXECUTE, "", NARGS("c", MOCKED_LAST_SERVER));
+    fill_session();
+    nordvpn_host_ptr host = nordvpn_get_host();
+    host->last_server = str_lit(MOCKED_LAST_SERVER);
+    assert_int(nordvpn_reconnect(), ==, FAILED_EXECUTE); // call
+    assert_empty_host();
+}
+
+TEST(test_nordvpn_reconnect_fail_update) {
+    add_mock_result(OK, "", NARGS("c", MOCKED_LAST_SERVER));
+    add_mock_result(FAILED_EXECUTE, "", NARGS("status"));
+    fill_session();
+    nordvpn_host_ptr host = nordvpn_get_host();
+    host->last_server = str_lit(MOCKED_LAST_SERVER);
+    assert_int(nordvpn_reconnect(), ==, FAILED_EXECUTE); // call
+    assert_empty_host();
+}
+
 TESTS(api_tests) = {
     TESTRUN("/close-all", test_nordvpn_close),
     TESTRUN("/open-ok-disconnected", test_nordvpn_open_success_dc),
@@ -240,5 +342,16 @@ TESTS(api_tests) = {
     TESTRUN("/logout-fail-was-out", test_nordvpn_logout_fail_already_out),
     TESTRUN("/logout-fail-no-session", test_nordvpn_logout_fail_no_session),
     TESTRUN("/logout-fail-execute", test_nordvpn_logout_fail_execute),
+    TESTRUN("/connect-ok-quick", test_nordvpn_connect_success_quick),
+    TESTRUN("/connect-ok-country", test_nordvpn_connect_success_country),
+    TESTRUN("/connect-ok-group", test_nordvpn_connect_success_group),
+    TESTRUN("/connect-fail-execute", test_nordvpn_connect_fail_execute),
+    TESTRUN("/connect-fail-update", test_nordvpn_connect_fail_update),
+    TESTRUN("/disconnect-ok-quick", test_nordvpn_disconnect_success_quick),
+    TESTRUN("/disconnect-fail-execute", test_nordvpn_disconnect_fail_execute),
+    TESTRUN("/disconnect-fail-update", test_nordvpn_disconnect_fail_update),
+    TESTRUN("/reconnect-ok-quick", test_nordvpn_logout_fail_execute),
+    TESTRUN("/reconnect-fail-execute", test_nordvpn_logout_fail_execute),
+    TESTRUN("/reconnect-fail-update", test_nordvpn_logout_fail_execute),
     TESTEND,
 };

@@ -1,5 +1,7 @@
 # Nordi
 
+![GitHub](https://img.shields.io/github/license/Ayzurus/nordi) ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/Ayzurus/nordi)
+
 ![icon](res/nordi.svg)
 
 An unofficial GTK linux application to interact with the [NordVPN](https://nordvpn.com/) binary, written in C.
@@ -24,7 +26,7 @@ The focus of the app is to somewhat mimic the user experience on the Windows ver
 
 Nordi requires [NordVPN](https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Debian-Ubuntu-Raspberry-Pi-Elementary-OS-and-Linux-Mint.htm) to be installed.
 
-- Using the pre built Debian package (does not include the nordi.desktop file)
+- Using the pre built Debian package
 
 ```sh
 sudo dpkg -i nordi.deb
