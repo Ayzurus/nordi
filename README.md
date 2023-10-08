@@ -12,7 +12,7 @@ The focus of the app is to somewhat mimic the user experience on the Windows ver
 
 - [x] Log in/out to NordVPN
 - [x] Quick connecting/disconnecting
-- [ ] Temporary disconnecting with auto reconnecting
+- [x] Temporary disconnecting with auto reconnecting
 - [x] Connecting to a specific country/group
 - [ ] Configure settings like firewall, threat protection, DNS, etc
 - [ ] Enable/disable meshnet
