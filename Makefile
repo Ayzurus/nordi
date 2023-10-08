@@ -13,6 +13,8 @@ BUILD_DIR		?= build/
 TARGET			?= nordi
 OUT				:= $(BUILD_DIR)$(TARGET)
 RESOURCE_DIR	?= res/
+DESKTOP_FILE	?= $(RESOURCE_DIR)$(TARGET).desktop
+CONTROL_FILE	?= $(RESOURCE_DIR)control
 GLIBFLAGS		?= --sourcedir=$(BUILD_DIR) --generate-source
 RESOURCE		?= $(RESOURCE_DIR)$(TARGET).gresource.xml
 TESTS			?= lib/str/str.c test/*.c test/munit/munit.c
@@ -35,28 +37,31 @@ endif
 TIDYFLAGS		?= --quiet -p $(BUILD_DIR)
 
 # Install options
-ifneq ($(SUDO_USER),)
-USER 			:= $(SUDO_USER)
-endif
-
-INSTALL_DIR		?= /usr/local/bin/
-APP_DIR			?= /home/$(USER)/.local/share/applications/
-ICON_DIR		?= /usr/share/icons/
+ICONS					?= $(RESOURCE_DIR)icons/*.png
+MAIN_ICON				?= $(RESOURCE_DIR)nordi.svg
+ICON_CACHE				?= gtk-update-icon-cache -f -t
+INSTALL_BIN_DIR 		?= /usr/local/bin/
+INSTALL_APP_DIR			?= /usr/share/applications/
+INSTALL_ICONS_DIR		?= /usr/share/$(TARGET)/icons/
+INSTALL_MAIN_ICON		?= /usr/share/icons/hicolor/scalable/apps/nordi.svg
 
 # Package options
-DPKG			?= dpkg-deb --build
-PACKAGE_DIR		?= $(BUILD_DIR)package/$(TARGET)/
-CONTROL_DIR		?= $(PACKAGE_DIR)DEBIAN/
-DESKTOP_DIR		?= $(PACKAGE_DIR)usr/share/applications/
+DPKG					?= dpkg-deb --build
+PACKAGE_DIR				?= $(BUILD_DIR)package/$(TARGET)
+PACKAGE_INSTALL_DIR		?= $(PACKAGE_DIR)$(INSTALL_BIN_DIR)
+PACKAGE_CONTROL_DIR		?= $(PACKAGE_DIR)/DEBIAN/
+PACKAGE_DESKTOP_DIR		?= $(PACKAGE_DIR)$(INSTALL_APP_DIR)
+PACKAGE_ICONS_DIR		?= $(PACKAGE_DIR)$(INSTALL_ICONS_DIR)
+PACKAGE_MAIN_ICON_DIR	?= $(PACKAGE_DIR)$(INSTALL_MAIN_ICON)
 
 # Make options
-.DEFAULT_GOAL 	:= build
+.DEFAULT_GOAL 			:= build
 
 ifneq ($(tput colors),2)
-	COLSTART	?= \033[1;44m
-	COLRELEASE	?= \033[1;45m
-	COLDEBUG	?= \033[1;43m
-	COLEND		?= \033[0m
+	COLSTART			?= \033[1;44m
+	COLRELEASE			?= \033[1;45m
+	COLDEBUG			?= \033[1;43m
+	COLEND				?= \033[0m
 endif
 
 # display all targets in this Makefile
@@ -115,30 +120,33 @@ test: $(TARGETTEST)
 
 # install locally
 .PHONY: install
-install:
-	@echo "$(COLSTART)installing binary on $(INSTALL_DIR)$(TARGET)$(COLEND)"
-	@cp $(OUT) $(INSTALL_DIR)
-	@chmod +x $(INSTALL_DIR)$(TARGET)
-	@echo "$(COLSTART)installing icon on $(ICON_DIR)$(COLEND)"
-	@cp -r $(RESOURCE_DIR)hicolor $(ICON_DIR)
-	@echo "$(COLSTART)installing .desktop on $(APP_DIR)$(TARGET).desktop$(COLEND)"
-	@cp $(RESOURCE_DIR)$(TARGET).desktop $(APP_DIR)
-	@chmod +x $(APP_DIR)$(TARGET).desktop
-	@gtk-update-icon-cache -f -t $(ICON_DIR)hicolor
+install: build
+	@echo "$(COLSTART)installing binary for $(TARGET)$(COLEND)"
+	@cp $(OUT) $(INSTALL_BIN_DIR)
+	@chmod +x $(INSTALL_BIN_DIR)$(TARGET)
+	@echo "$(COLSTART)installing icons$(COLEND)"
+	-@mkdir -p $(INSTALL_ICONS_DIR)
+	@cp $(ICONS) $(INSTALL_ICONS_DIR)
+	@cp $(MAIN_ICON) $(INSTALL_MAIN_ICON)
+	@echo "$(COLSTART)installing .desktop$(COLEND)"
+	@cp $(DESKTOP_FILE) $(INSTALL_APP_DIR)
+	@chmod +x $(INSTALL_APP_DIR)$(TARGET).desktop
+	@$(ICON_CACHE) $(INSTALL_ICONS_DIR) $(INSTALL_MAIN_ICON)
 
 # create debian package
 .PHONY: package
 package: build
-	@echo "$(COLSTART)creating install package$(INSTALL_DIR)$(TARGET)$(COLEND)"
-	@mkdir -p $(PACKAGE_DIR)$(INSTALL_DIR) $(PACKAGE_DIR)$(ICON_DIR) $(CONTROL_DIR) $(DESKTOP_DIR)
-	@cp $(OUT) $(PACKAGE_DIR)$(INSTALL_DIR)
-	@cp -r $(RESOURCE_DIR)hicolor $(PACKAGE_DIR)$(ICON_DIR)
-	@cp $(RESOURCE_DIR)control $(CONTROL_DIR)
-	@cp $(RESOURCE_DIR)$(TARGET).desktop $(DESKTOP_DIR)
+	@echo "$(COLSTART)creating install package$(COLEND)"
+	@mkdir -p $(PACKAGE_INSTALL_DIR) $(PACKAGE_CONTROL_DIR) $(PACKAGE_DESKTOP_DIR) $(PACKAGE_ICONS_DIR) $(PACKAGE_MAIN_ICON_DIR)
+	@cp $(OUT) $(PACKAGE_INSTALL_DIR)
+	@cp $(ICONS) $(PACKAGE_ICONS_DIR) 
+	@cp $(MAIN_ICON) $(PACKAGE_MAIN_ICON_DIR)
+	@cp $(CONTROL_FILE) $(PACKAGE_CONTROL_DIR)
+	@cp $(DESKTOP_FILE) $(PACKAGE_DESKTOP_DIR)
 	@$(DPKG) $(PACKAGE_DIR)
 	@echo "$(COLSTART)nordi.deb checksums$(COLEND)"
-	@echo "SHA256: $(shell sha256sum $(BUILD_DIR)package/$(TARGET).deb)"
-	@echo "SHA512: $(shell sha512sum $(BUILD_DIR)package/$(TARGET).deb)"
+	@echo "SHA256: $(shell sha256sum $(PACKAGE_DIR).deb)"
+	@echo "SHA512: $(shell sha512sum $(PACKAGE_DIR).deb)"
 
 # clear build directory
 .PHONY: clean
