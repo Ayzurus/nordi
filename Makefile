@@ -136,6 +136,9 @@ package: build
 	@cp $(RESOURCE_DIR)control $(CONTROL_DIR)
 	@cp $(RESOURCE_DIR)$(TARGET).desktop $(DESKTOP_DIR)
 	@$(DPKG) $(PACKAGE_DIR)
+	@echo "$(COLSTART)nordi.deb checksums$(COLEND)"
+	@echo "SHA256: $(shell sha256sum $(BUILD_DIR)package/$(TARGET).deb)"
+	@echo "SHA512: $(shell sha512sum $(BUILD_DIR)package/$(TARGET).deb)"
 
 # clear build directory
 .PHONY: clean

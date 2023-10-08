@@ -36,7 +36,8 @@ typedef struct {
     bool is_online;
     nordvpn_country_t country;
     str ip;
-    str name;
+    str hostname;
+    str last_server;
     str proto;
 } nordvpn_host_t;
 
@@ -108,6 +109,12 @@ nordvpn_error_t nordvpn_connect();
  * @return 0 if no error occurs, the error code otherwise.
  */
 nordvpn_error_t nordvpn_server_connect(str);
+
+/**
+ * @brief Reconnects to the last connected VPN server on the current session, independently of current state.
+ * @return 0 if no error occurs, the error code otherwise.
+ */
+nordvpn_error_t nordvpn_reconnect();
 
 /**
  * @brief Disconnects from any current NordVPN server.

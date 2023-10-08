@@ -86,7 +86,7 @@ str_contains(str source, str target) {
     return strstr(str_ptr(source), str_ptr(target));
 }
 
-// Splits a str separated by ": ", returning a sub string with only the right side
+// Returns the second half of the split on the first occurrence of delim
 static str
 str_split_value(str source, str delim) {
     char* sub_source = str_contains(source, delim);
@@ -94,6 +94,13 @@ str_split_value(str source, str delim) {
         return str_null;
     }
     return str_ref(sub_source + str_len(delim));
+}
+
+// Returns the first half of the split on the first occurrence of delim
+static str
+str_split_key(str source, str delim) {
+    str value = str_split_value(source, delim);
+    return str_ref_chars(str_ptr(source), str_len(source) - (str_len(value) + str_len(delim)));
 }
 
 nordvpn_session_ptr
@@ -108,7 +115,8 @@ nordvpn_host_ptr
 nordvpn_get_host() {
     static nordvpn_host_t host = {
         .ip = str_null,
-        .name = str_null,
+        .hostname = str_null,
+        .last_server = str_null,
         .proto = str_null,
     };
     return &host;
@@ -163,7 +171,8 @@ nordvpn_update_status(nordvpn_session_ptr session) {
     int output_lines = str_split_lines(buffer, output, STATUS_LINE_COUNT);
     host->is_online = output_lines > 1 && str_has_suffix(output[0], str_lit("Connected"));
     if (host->is_online) {
-        str_cpy(&(host->name), str_split_value(output[1], DELIM));
+        str_cpy(&(host->hostname), str_split_value(output[1], DELIM));
+        str_cpy(&(host->last_server), str_split_key(host->hostname, str_lit(".")));
         str_cpy(&(host->ip), str_split_value(output[2], DELIM));
         str country = str_split_value(output[3], DELIM);
         str_cpy(&(host->proto), str_split_value(output[STATUS_LINE_COUNT - 1], DELIM));
@@ -173,7 +182,7 @@ nordvpn_update_status(nordvpn_session_ptr session) {
             }
         }
     } else {
-        str_clear(&(host->name));
+        str_clear(&(host->hostname));
         str_clear(&(host->ip));
         str_clear(&(host->proto));
     }
@@ -246,7 +255,8 @@ nordvpn_close() {
     nordvpn_host_ptr host = nordvpn_get_host();
     if (host->is_online) {
         str_clear(&(host->ip));
-        str_clear(&(host->name));
+        str_clear(&(host->hostname));
+        str_clear(&(host->last_server));
         str_clear(&(host->proto));
     }
     host->is_online = false;
@@ -328,6 +338,12 @@ nordvpn_server_connect(str server) {
         return result;
     }
     return nordvpn_update_status(session);
+}
+
+nordvpn_error_t
+nordvpn_reconnect() {
+    nordvpn_host_ptr host = nordvpn_get_host();
+    return nordvpn_server_connect(host->last_server);
 }
 
 nordvpn_error_t

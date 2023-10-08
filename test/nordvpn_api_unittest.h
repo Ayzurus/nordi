@@ -4,18 +4,19 @@
 #include "../src/nordvpn_api.c"
 #include "nordi_unittest.h"
 
-#define MOCKED_VERSION   "NordVPN Version 3.16.6"
-#define MOCKED_EMAIL     "example@mail.org"
-#define MOCKED_EXPIRY    "Active (Expires on Jan 1st, 2077)"
-#define MOCKED_PROTO     "UDP"
-#define MOCKED_IP        "100.200.300.400"
-#define MOCKED_HOSTNAME  "ab999.nordvpn.com"
-#define MOCKED_COUNTRY   PORTUGAL
-#define MOCKED_LINK      "http://nordvpn.com/api/user/loginstuff"
-#define MOCKED_GOODLINK  "Proceed here: http://nordvpn.com/api/user/loginstuff\n"
-#define MOCKED_BADLINK   "Timed out trying to get link\n"
-#define MOCKED_LOGOUT    "logout"
-#define MOCKED_DISSTATUS "Status: Disconnected\n"
+#define MOCKED_VERSION     "NordVPN Version 3.16.6"
+#define MOCKED_EMAIL       "example@mail.org"
+#define MOCKED_EXPIRY      "Active (Expires on Jan 1st, 2077)"
+#define MOCKED_PROTO       "UDP"
+#define MOCKED_IP          "100.200.300.400"
+#define MOCKED_HOSTNAME    "ab999.nordvpn.com"
+#define MOCKED_LAST_SERVER "ab999"
+#define MOCKED_COUNTRY     PORTUGAL
+#define MOCKED_LINK        "http://nordvpn.com/api/user/loginstuff"
+#define MOCKED_GOODLINK    "Proceed here: http://nordvpn.com/api/user/loginstuff\n"
+#define MOCKED_BADLINK     "Timed out trying to get link\n"
+#define MOCKED_LOGOUT      "logout"
+#define MOCKED_DISSTATUS   "Status: Disconnected\n"
 #define MOCKED_CONSTATUS                                                                                                                   \
     "Status: Connected\n"                                                                                                                  \
     "Hostname: ab999.nordvpn.com\n"                                                                                                        \

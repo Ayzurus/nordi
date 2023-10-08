@@ -69,14 +69,6 @@ template nordi_gui_t : Gtk.ApplicationWindow {
                             }
                         }
 
-                        Gtk.Spinner spinner1 {
-                            spinning: false;
-                            layout {
-                                column: 0;
-                                row: 4;
-                            }
-                        }
-
                         Gtk.Label {
                             halign: start;
                             label: "Host";
@@ -113,12 +105,12 @@ template nordi_gui_t : Gtk.ApplicationWindow {
                             }
                         }
 
-                        Gtk.Button {
+                        Gtk.Button pause_button {
                             visible: false;
                             label: "Pause";
                             layout {
-                                column: 1;
-                                row: 3;
+                                column: 0;
+                                row: 4;
                             }
                         }
                     };
