@@ -65,7 +65,7 @@ nordi_app_run(int argc, char** argv) {
     if (result != OK) {
         g_printerr("Couldn't start a NordVPN API session: %s\n", str_ptr(nordvpn_error(result)));
         nordvpn_close();
-        return G_IO_ERROR_CANCELLED;
+        return EXIT_FAILURE;
     }
     int status = g_application_run(G_APPLICATION(nordi_app_new()), argc, argv);
     nordvpn_close();
