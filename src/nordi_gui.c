@@ -5,6 +5,7 @@
  * https://opensource.org/licenses/MIT
  */
 
+#include <gio/gio.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include "nordi_app.h"
@@ -14,10 +15,15 @@
 #include "nordvpn_server.h"
 
 #define SECONDS_IN_A_MINUTE 60
+#define ICONS_PATH          "/nordi/icons/"
+#define ICONS_SIZE          24
+#define ICONS_SCALE         1
 
 struct _nordi_gui_t {
     GtkApplicationWindow parent;
     GtkDialog* dialog;
+    GIcon_autoptr connected_icon;
+    GIcon_autoptr disconnected_icon;
     nordi_routine_ptr helper_routine;
     // NordVPN API
     nordvpn_session_ptr nordvpn_session;
@@ -49,6 +55,20 @@ get_nordi_gui_from(GtkWidget* widget) {
         return NULL;
     }
     return NORDI_GUI(main);
+}
+
+static void
+nordi_gui_notify(nordi_gui_ptr window) {
+    GNotification_autoptr notification;
+    if (window->nordvpn_host->is_online) {
+        notification = g_notification_new("NordVPN connected");
+        g_notification_set_icon(notification, window->connected_icon);
+        g_notification_set_body(notification, str_ptr(window->nordvpn_host->hostname));
+    } else {
+        notification = g_notification_new("NordVPN disconnected");
+        g_notification_set_icon(notification, window->disconnected_icon);
+    }
+    g_application_send_notification(gtk_window_get_application(GTK_WINDOW(window)), "nordi-status", notification);
 }
 
 static void
@@ -100,6 +120,7 @@ nordi_gui_connect(GtkButton* button) {
     }
     nordi_gui_update_vpn_data(window);
     gtk_widget_set_sensitive(GTK_WIDGET(button), true);
+    nordi_gui_notify(window);
 }
 
 static void
@@ -114,6 +135,7 @@ nordi_gui_disconnect(GtkButton* button) {
     }
     nordi_gui_update_vpn_data(window);
     gtk_widget_set_sensitive(GTK_WIDGET(button), true);
+    nordi_gui_notify(window);
 }
 
 static void
@@ -167,6 +189,7 @@ static void
 nordi_gui_pause_end(nordi_gui_ptr window) {
     nordvpn_error_t error = nordvpn_reconnect();
     if (error == OK) {
+        nordi_gui_notify(window);
         nordi_gui_update_vpn_data(window);
         return;
     }
@@ -193,6 +216,7 @@ nordi_gui_pause_start(nordi_gui_ptr window, int response) {
     nordi_gui_update_vpn_data(window);
     gtk_window_destroy(window->dialog);
     window->dialog = NULL;
+    nordi_gui_notify(window);
 }
 
 static void
@@ -222,6 +246,15 @@ static void
 nordi_gui_init(nordi_gui_ptr window) {
     gtk_widget_init_template(GTK_WIDGET(window));
     window->helper_routine = NULL;
+    // Load icons
+    GtkIconTheme_autoptr theme = gtk_icon_theme_get_for_display(gdk_display_get_default());
+    gtk_icon_theme_add_resource_path(theme, ICONS_PATH);
+    GtkIconPaintable_autoptr connected_icon_info =
+        gtk_icon_theme_lookup_icon(theme, "nordi-connected", NULL, ICONS_SIZE, ICONS_SCALE, 0, 0);
+    GtkIconPaintable_autoptr disconnected_icon_info =
+        gtk_icon_theme_lookup_icon(theme, "nordi-disconnected", NULL, ICONS_SIZE, ICONS_SCALE, 0, 0);
+    window->connected_icon = g_file_icon_new(gtk_icon_paintable_get_file(connected_icon_info));
+    window->disconnected_icon = g_file_icon_new(gtk_icon_paintable_get_file(disconnected_icon_info));
     // Setup NordVPN API
     window->nordvpn_session = nordvpn_get_session();
     window->nordvpn_host = nordvpn_get_host();
@@ -248,7 +281,7 @@ nordi_gui_init(nordi_gui_ptr window) {
 
 static void
 nordi_gui_class_init(nordi_gui_class class) {
-    gtk_widget_class_set_template_from_resource(GTK_WIDGET_CLASS(class), "/com/nordi/nordi.ui");
+    gtk_widget_class_set_template_from_resource(GTK_WIDGET_CLASS(class), "/nordi/nordi.ui");
     GtkWidgetClass* widget_class = GTK_WIDGET_CLASS(class);
     // Populate template references
     gtk_widget_class_bind_template_child(widget_class, nordi_gui_t, country_combo);
