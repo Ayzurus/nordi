@@ -19,7 +19,7 @@ The focus of the app is to somewhat mimic the user experience on the Windows ver
 - [ ] List other devices on meshnet
 - [ ] File sharing
 - [ ] Tray version for quick actions (similar to Windows app)
-- [ ] Desktop notifications on connect/disconnect (similar to Windows app)
+- [x] Desktop notifications on connect/disconnect (similar to Windows app)
 - [ ] Support locales
 
 ## Installing
